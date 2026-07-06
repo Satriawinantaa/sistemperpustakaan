@@ -2,7 +2,9 @@
 📚 E-Perpus: Sistem Manajemen Perpustakaan Kampus
 Sistem Informasi Manajemen Perpustakaan berbasis Web yang dikembangkan dari nol menggunakan PHP Native dan arsitektur Object-Oriented Programming (OOP). Proyek ini dibangun sebagai implementasi nyata dari konsep keamanan aplikasi web (Password Hashing & Session Management) serta desain antarmuka yang modern dan responsif.
 
-Dikembangkan oleh Satria Winanta (Mahasiswa ITB STIKOM Bali) sebagai bagian dari proyek Pengembangan Web.
+Dikembangkan oleh 
+I Made Agus Satria Winanta 240040047
+I Kadek Egik Dita Mahaputra 240040024
 
 ✨ Fitur Utama
 🔒 Keamanan Tingkat Lanjut (Hashing): Mengamankan kredensial pengguna menggunakan algoritma password_hash() standar industri, memastikan password tidak tersimpan dalam bentuk teks biasa di database.
