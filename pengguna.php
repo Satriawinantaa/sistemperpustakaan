@@ -102,18 +102,18 @@ include 'header.php';
                 <input type="hidden" name="action" value="add">
                 
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Nama Lengkap</label>
+                    <label class="form-label text-muted small fw-bold">Nama</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-font text-muted"></i></span>
-                        <input type="text" name="nama_lengkap" class="form-control border-start-0 ps-0 bg-light" required placeholder="Contoh: Budi Santoso">
+                        <input type="text" name="nama_lengkap" class="form-control border-start-0 ps-0 bg-light" required placeholder="Contoh: I Nyoman Puyeng">
                     </div>
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Username</label>
+                    <label class="form-label text-muted small fw-bold">NIM</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
-                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" required placeholder="Ketik username unik">
+                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" required placeholder="NIM">
                     </div>
                 </div>
 
@@ -130,7 +130,7 @@ include 'header.php';
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
                         <select name="role" class="form-select border-start-0 ps-0 bg-light">
-                            <option value="Anggota">Anggota Peminjam</option>
+                            <option value="Anggota">Mahasiswa</option>
                             <option value="Pustakawan">Pustakawan</option>
                             <option value="Admin">Administrator</option>
                         </select>
