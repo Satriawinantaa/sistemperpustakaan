@@ -3,22 +3,50 @@ require_once 'config.php';
 requireLogin();
 requireRole('Admin'); // Hanya Admin yang bisa akses file ini
 
-// -- PROSES POST DATA --
+// -- PROSES POST DATA (CRUD LOGIC) --
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    // 1. CREATE (Tambah Pengguna)
     if ($action === 'add') {
         $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
         $stmt = $pdo->prepare("INSERT INTO users (username, password, nama_lengkap, role) VALUES (?, ?, ?, ?)");
         $stmt->execute([$_POST['username'], $pass, $_POST['nama_lengkap'], $_POST['role']]);
         header("Location: pengguna.php"); exit;
-    } elseif ($action === 'delete') {
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
-        $stmt->execute([$_POST['id']]);
+    } 
+    
+    // 2. UPDATE (Edit Pengguna)
+    elseif ($action === 'edit') {
+        $id = $_POST['id'];
+        $username = $_POST['username'];
+        $nama_lengkap = $_POST['nama_lengkap'];
+        $role = $_POST['role'];
+
+        if (!empty($_POST['password'])) {
+            // Jika password baru diisi, update password juga
+            $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, password = ?, nama_lengkap = ?, role = ? WHERE id = ?");
+            $stmt->execute([$username, $pass, $nama_lengkap, $role, $id]);
+        } else {
+            // Jika password kosong, pertahankan password lama
+            $stmt = $pdo->prepare("UPDATE users SET username = ?, nama_lengkap = ?, role = ? WHERE id = ?");
+            $stmt->execute([$username, $nama_lengkap, $role, $id]);
+        }
+        header("Location: pengguna.php"); exit;
+    } 
+    
+    // 3. DELETE (Hapus Pengguna)
+    elseif ($action === 'delete') {
+        // Proteksi: Mencegah admin menghapus dirinya sendiri yang sedang login
+        if ($_POST['id'] != $_SESSION['user_id']) {
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$_POST['id']]);
+        }
         header("Location: pengguna.php"); exit;
     }
 }
 
+// READ: Ambil semua data pengguna dari database
 $users = $pdo->query("SELECT * FROM users")->fetchAll();
 include 'header.php';
 ?>
@@ -70,6 +98,16 @@ include 'header.php';
                             </td>
                             <td class="text-end pe-4">
                                 <?php if($u['id'] != $_SESSION['user_id']): ?>
+                                <button class="btn btn-sm btn-outline-primary rounded-circle me-1 edit-btn" style="width: 35px; height: 35px;"
+                                        data-id="<?= $u['id'] ?>"
+                                        data-nama="<?= htmlspecialchars($u['nama_lengkap']) ?>"
+                                        data-username="<?= htmlspecialchars($u['username']) ?>"
+                                        data-role="<?= $u['role'] ?>"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editUserModal">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                
                                 <form method="POST" class="d-inline">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="id" value="<?= $u['id'] ?>">
@@ -90,7 +128,6 @@ include 'header.php';
     </div>
 </div>
 
-<!-- Modal Tambah User -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
@@ -139,10 +176,86 @@ include 'header.php';
             </div>
             <div class="modal-footer border-top-0 pt-0 px-4 mb-2">
                 <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-primary rounded-pill px-4">Simpan Data</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4" style="background-color: var(--primary-color); border-color: var(--primary-color);">Simpan Data</button>
             </div>
         </form>
     </div>
 </div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header border-bottom-0 pb-0 mt-2">
+                <h5 class="modal-title fw-bold" style="color: var(--primary-color);">Ubah Data Pengguna</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id" id="edit_id">
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Nama</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-font text-muted"></i></span>
+                        <input type="text" name="nama_lengkap" id="edit_nama" class="form-control border-start-0 ps-0 bg-light" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">NIM/Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                        <input type="text" name="username" id="edit_username" class="form-control border-start-0 ps-0 bg-light" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Password Baru <span class="text-danger fw-normal" style="font-size: 0.75rem;">*(Kosongkan jika tidak diubah)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-lock text-muted"></i></span>
+                        <input type="password" name="password" class="form-control border-start-0 ps-0 bg-light" placeholder="Masukkan password baru">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">Hak Akses / Role</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
+                        <select name="role" id="edit_role" class="form-select border-start-0 ps-0 bg-light">
+                            <option value="Anggota">Mahasiswa</option>
+                            <option value="Pustakawan">Pustakawan</option>
+                            <option value="Admin">Administrator</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 px-4 mb-2">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Perbarui Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-btn');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Ambil data atribut dari tombol edit yang diklik
+            const id = this.getAttribute('data-id');
+            const nama = this.getAttribute('data-nama');
+            const username = this.getAttribute('data-username');
+            const role = this.getAttribute('data-role');
+
+            // Masukkan data tersebut ke dalam input modal edit
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_nama').value = nama;
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_role').value = role;
+        });
+    });
+});
+</script>
 
 <?php include 'footer.php'; ?>
