@@ -44,7 +44,7 @@ include 'header.php';
                     <thead class="table-light text-muted" style="font-size: 0.85rem; text-transform: uppercase;">
                         <tr>
                             <th class="ps-4 py-3">Nama Lengkap</th>
-                            <th>Username</th>
+                            <th>NIM/Username</th>
                             <th>Hak Akses / Role</th>
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
@@ -110,10 +110,10 @@ include 'header.php';
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">NIM</label>
+                    <label class="form-label text-muted small fw-bold">NIM/Username</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
-                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" required placeholder="NIM">
+                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" required placeholder="NIM/Username">
                     </div>
                 </div>
 

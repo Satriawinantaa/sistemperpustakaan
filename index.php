@@ -57,7 +57,7 @@ $p = $_GET['p'] ?? '';
         <hr class="mb-4" style="border-color: #ddd;">
         
         <p class="text-dark mb-4" style="font-size: 1.05rem;">
-            Masukkan ID anggota serta kata sandi yang diberikan oleh administrator sistem perpustakaan. Jika Anda anggota perpustakaan namun belum memiliki kata sandi, hubungi staf perpustakaan.
+            Masukkan NIM/Username serta kata sandi yang diberikan oleh administrator sistem perpustakaan. Jika Anda anggota perpustakaan namun belum memiliki kata sandi, hubungi staf perpustakaan.
         </p>
         
         <div class="row">
@@ -66,8 +66,8 @@ $p = $_GET['p'] ?? '';
                 <form method="POST">
                     <input type="hidden" name="login_process" value="1">
                     <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 0.95rem;">ID Anggota</label>
-                        <input type="text" name="username" class="form-control p-2" placeholder="Enter member ID" required autofocus>
+                        <label class="form-label fw-bold" style="font-size: 0.95rem;">NIM/Username</label>
+                        <input type="text" name="username" class="form-control p-2" placeholder="NIM/Username" required autofocus>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-bold" style="font-size: 0.95rem;">Kata Sandi</label>

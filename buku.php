@@ -24,6 +24,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok']]);
             header("Location: buku.php"); exit;
         }
+        // Admin & Pustakawan: EDIT Buku (FITUR BARU)
+        elseif ($action === 'edit' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
+            $stmt = $pdo->prepare("UPDATE books SET judul = ?, pengarang = ?, penerbit = ?, stok = ? WHERE id = ?");
+            $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok'], $_POST['id']]);
+            header("Location: buku.php"); exit;
+        }
         // Admin & Pustakawan: Hapus Buku
         elseif ($action === 'delete' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
             $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
@@ -220,13 +226,29 @@ include 'header.php';
                                     <?php endif; ?>
 
                                     <?php if (isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])): ?>
-                                        <form method="POST">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="<?= $b['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-2" style="font-size: 0.8rem; font-weight: 500;" onclick="return confirm('Hapus buku dari katalog?')">
-                                                <i class="fas fa-trash me-1"></i> Hapus Buku
-                                            </button>
-                                        </form>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <button type="button" class="btn btn-sm btn-outline-primary w-100 rounded-pill py-2" style="font-size: 0.8rem; font-weight: 500;" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editBookModal" 
+                                                        data-id="<?= $b['id'] ?>"
+                                                        data-judul="<?= htmlspecialchars($b['judul']) ?>"
+                                                        data-pengarang="<?= htmlspecialchars($b['pengarang']) ?>"
+                                                        data-penerbit="<?= htmlspecialchars($b['penerbit']) ?>"
+                                                        data-stok="<?= $b['stok'] ?>">
+                                                    <i class="fas fa-edit me-1"></i> Edit
+                                                </button>
+                                            </div>
+                                            <div class="col-6">
+                                                <form method="POST">
+                                                    <input type="hidden" name="action" value="delete">
+                                                    <input type="hidden" name="id" value="<?= $b['id'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill py-2" style="font-size: 0.8rem; font-weight: 500;" onclick="return confirm('Hapus buku dari katalog?')">
+                                                        <i class="fas fa-trash me-1"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -244,7 +266,7 @@ include 'header.php';
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
             <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold" style="color: var(--primary-color);">Registrasi Buku Baru</h5>
+                <h5 class="modal-title fw-bold" style="color: var(--primary-color);"><i class="fas fa-plus-circle text-primary me-2"></i>Registrasi Buku Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body px-4">
@@ -260,6 +282,67 @@ include 'header.php';
         </form>
     </div>
 </div>
+
+<div class="modal fade" id="editBookModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" style="color: var(--primary-color);"><i class="fas fa-edit text-primary me-2"></i>Ubah Data Buku</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id" id="edit-id">
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Judul Lengkap</label>
+                    <input type="text" name="judul" id="edit-judul" class="form-control bg-light" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Nama Pengarang</label>
+                    <input type="text" name="pengarang" id="edit-pengarang" class="form-control bg-light" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Penerbit</label>
+                    <input type="text" name="penerbit" id="edit-penerbit" class="form-control bg-light" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Jumlah Stok (Eksemplar)</label>
+                    <input type="number" name="stok" id="edit-stok" class="form-control bg-light" required min="0">
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 px-4 pb-3">
+                <button type="submit" class="btn btn-success rounded-pill px-4 w-100">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var editModal = document.getElementById('editBookModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function (event) {
+            // Tombol yang memicu modal muncul
+            var button = event.relatedTarget;
+            
+            // Ambil semua data atribut dari tombol tersebut
+            var id = button.getAttribute('data-id');
+            var judul = button.getAttribute('data-judul');
+            var pengarang = button.getAttribute('data-pengarang');
+            var penerbit = button.getAttribute('data-penerbit');
+            var stok = button.getAttribute('data-stok');
+            
+            // Masukkan data ke dalam elemen input form modal edit
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-judul').value = judul;
+            document.getElementById('edit-pengarang').value = pengarang;
+            document.getElementById('edit-penerbit').value = penerbit;
+            document.getElementById('edit-stok').value = stok;
+        });
+    }
+});
+</script>
 <?php endif; ?>
 
 <style>
