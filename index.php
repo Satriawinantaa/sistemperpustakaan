@@ -39,11 +39,6 @@ $p = $_GET['p'] ?? '';
 ?>
 
 <?php if ($p === 'member' && !isLoggedIn()): ?>
-    <!-- ========================================== -->
-    <!-- VIEW 1: AREA ANGGOTA (FORM LOGIN)          -->
-    <!-- ========================================== -->
-    
-    <!-- Hero Section Pendek (Agar kolom pencarian tetap ada di atas) -->
     <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 120px 0 60px 0; margin-top: 0;">
         <div class="container text-center mt-3">
             <div class="row justify-content-center">
@@ -57,7 +52,6 @@ $p = $_GET['p'] ?? '';
         </div>
     </div>
 
-    <!-- Form Login SLiMS Style -->
     <div class="container my-5" style="min-height: 45vh;">
         <h2 class="fw-bold mb-3" style="color: #333;">Masuk Anggota Perpustakaan</h2>
         <hr class="mb-4" style="border-color: #ddd;">
@@ -86,16 +80,10 @@ $p = $_GET['p'] ?? '';
     </div>
 
 <?php else: ?>
-    <!-- ========================================== -->
-    <!-- VIEW 2: BERANDA OPAC (DEFAULT)             -->
-    <!-- ========================================== -->
-
-    <!-- Hero Section ala SLiMS OPAC (Full Hutan) -->
     <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 160px 0 120px 0; margin-top: 0; min-height: 500px; display: flex; align-items: center;">
         <div class="container text-center text-white mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-8">
-                    <!-- Simulasi Kolom Pencarian Besar di Tengah Pemandangan -->
                     <form action="buku.php" method="GET" class="d-flex bg-white p-2 rounded shadow-lg" style="border-radius: 8px !important;">
                         <input type="text" name="search" class="form-control border-0 p-3 fs-5" placeholder="Masukkan kata kunci untuk mencari koleksi..." style="box-shadow: none;">
                         <button type="submit" class="btn bg-white border-0 px-4 fs-4 text-secondary"><i class="fas fa-search"></i></button>
@@ -105,45 +93,36 @@ $p = $_GET['p'] ?? '';
         </div>
     </div>
 
-    <div class="container" style="margin-top: -30px; position: relative; z-index: 5;">
-        <!-- Subjek Area Pilihan -->
-        <div class="text-center mb-5 bg-white p-5 shadow-sm rounded-4 border">
-            <h4 class="mb-4" style="color: #4a5568; font-weight: 300;">Pilih subjek yang menarik bagi Anda</h4>
-            <div class="d-flex flex-wrap justify-content-center gap-3">
-                <a href="#" class="btn btn-outline-secondary rounded-pill px-4 py-2">Kesusastraan</a>
-                <a href="#" class="btn btn-outline-secondary rounded-pill px-4 py-2">Rekayasa Perangkat Lunak</a>
-                <a href="#" class="btn btn-outline-secondary rounded-pill px-4 py-2">Desain Visual</a>
-                <a href="#" class="btn btn-outline-secondary rounded-pill px-4 py-2">Basis Data</a>
-                <a href="#" class="btn btn-outline-secondary rounded-pill px-4 py-2">Karya Umum</a>
-            </div>
-        </div>
-
-        <!-- Tampilan Koleksi Baru -->
-        <h5 class="fw-bold mb-4 mt-5" style="color: var(--primary-color);"><i class="fas fa-book-open text-warning me-2"></i>Koleksi baru dan diperbarui</h5>
-        <div class="row mb-5">
-            <?php foreach($buku_terbaru as $b): ?>
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow-sm border-0 bg-white">
-                    <div class="card-body text-center mt-3">
-                        <div class="mb-3">
-                            <div style="width: 110px; height: 150px; background: #e2e8f0; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 10px rgba(0,0,0,0.1);">
-                                <i class="fas fa-book fa-3x text-secondary"></i>
+    <div class="container" style="margin-top: -50px; position: relative; z-index: 5;">
+        <div class="bg-white p-4 p-md-5 shadow-sm rounded-4 border mb-5">
+            <h5 class="fw-bold mb-4" style="color: var(--primary-color);">
+                <i class="fas fa-book-open text-warning me-2"></i>Koleksi baru dan diperbarui
+            </h5>
+            
+            <div class="row">
+                <?php foreach($buku_terbaru as $b): ?>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0 bg-light" style="border-radius: 12px;">
+                        <div class="card-body text-center mt-3">
+                            <div class="mb-3">
+                                <div style="width: 110px; height: 150px; background: #e2e8f0; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 4px 4px 10px rgba(0,0,0,0.1); border-radius: 4px;">
+                                    <i class="fas fa-book fa-3x text-secondary"></i>
+                                </div>
                             </div>
+                            <h6 class="card-title fw-bold text-truncate px-2" title="<?= htmlspecialchars($b['judul']) ?>"><?= htmlspecialchars($b['judul']) ?></h6>
+                            <p class="card-text small text-muted mb-2 text-truncate px-2"><?= htmlspecialchars($b['pengarang']) ?></p>
                         </div>
-                        <h6 class="card-title fw-bold text-truncate" title="<?= htmlspecialchars($b['judul']) ?>"><?= htmlspecialchars($b['judul']) ?></h6>
-                        <p class="card-text small text-muted mb-2"><?= htmlspecialchars($b['pengarang']) ?></p>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 text-center pb-4">
-                        <a href="buku.php" class="btn btn-sm btn-outline-primary rounded-pill px-4">Lihat Detail</a>
+                        <div class="card-footer bg-transparent border-0 text-center pb-4">
+                            <a href="buku.php" class="btn btn-sm btn-outline-primary rounded-pill px-4">Lihat Detail</a>
+                        </div>
                     </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
         </div>
     </div>
 <?php endif; ?>
 
-<!-- Script untuk merubah warna navbar saat di scroll -->
 <script>
     window.addEventListener('scroll', function() {
         const navbar = document.getElementById('mainNavbar');
