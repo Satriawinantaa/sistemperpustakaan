@@ -6,35 +6,58 @@ requireLogin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasRole(['Admin', 'Pustakawan'])) {
     $action = $_POST['action'] ?? '';
     
-    // 1. Proses Terima Pengembalian Buku
+    // 1. Proses Terima Pengembalian Buku (Dengan Database Transaction)
     if ($action === 'return') {
-        $loan_id = $_POST['loan_id'];
-        $book_id = $_POST['book_id'];
+        $loan_id = $_POST['loan_id'] ?? null;
+        $book_id = $_POST['book_id'] ?? null;
         
-        $pdo->prepare("UPDATE loans SET status = 'Dikembalikan' WHERE id = ?")->execute([$loan_id]);
-        $pdo->prepare("UPDATE books SET stok = stok + 1 WHERE id = ?")->execute([$book_id]);
-        header("Location: peminjaman.php"); exit;
+        if ($loan_id && $book_id) {
+            try {
+                $pdo->beginTransaction();
+                
+                $stmt1 = $pdo->prepare("UPDATE loans SET status = 'Dikembalikan' WHERE id = ?");
+                $stmt1->execute([$loan_id]);
+                
+                $stmt2 = $pdo->prepare("UPDATE books SET stok = stok + 1 WHERE id = ?");
+                $stmt2->execute([$book_id]);
+                
+                $pdo->commit();
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                // Opsional: set pesan error ke session
+            }
+        }
+        header("Location: peminjaman.php"); 
+        exit;
     }
     
     // 2. Proses Hapus SEMUA Riwayat yang Statusnya Sudah 'Dikembalikan'
     if ($action === 'delete_all_completed') {
         $pdo->exec("DELETE FROM loans WHERE status = 'Dikembalikan'");
-        header("Location: peminjaman.php"); exit;
+        header("Location: peminjaman.php"); 
+        exit;
     }
 }
 
 // -- AMBIL DATA SESUAI ROLE --
 if (hasRole(['Admin', 'Pustakawan'])) {
-    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l JOIN books b ON l.book_id = b.id JOIN users u ON l.user_id = u.id ORDER BY l.id DESC";
+    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l 
+              JOIN books b ON l.book_id = b.id 
+              JOIN users u ON l.user_id = u.id 
+              ORDER BY l.id DESC";
     $stmt = $pdo->query($query);
 } else {
-    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l JOIN books b ON l.book_id = b.id JOIN users u ON l.user_id = u.id WHERE l.user_id = ? ORDER BY l.id DESC";
+    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l 
+              JOIN books b ON l.book_id = b.id 
+              JOIN users u ON l.user_id = u.id 
+              WHERE l.user_id = ? 
+              ORDER BY l.id DESC";
     $stmt = $pdo->prepare($query);
     $stmt->execute([$_SESSION['user_id']]);
 }
 $loans = $stmt->fetchAll();
 
-// Cek apakah ada data yang berstatus 'Dikembalikan' untuk menentukan tombol 'Hapus Semua' muncul atau tidak
+// Cek status 'Dikembalikan' untuk visibilitas tombol hapus massal
 $has_completed_loans = false;
 foreach ($loans as $loan) {
     if ($loan['status'] === 'Dikembalikan') {
@@ -43,7 +66,7 @@ foreach ($loans as $loan) {
     }
 }
 
-// CEK APAKAH ADA NOTIFIKASI STRUK DARI BUKU.PHP
+// Cek Notifikasi Struk
 $receipt = '';
 if (isset($_SESSION['flash_receipt'])) {
     $receipt = $_SESSION['flash_receipt'];
@@ -54,6 +77,24 @@ include 'header.php';
 ?>
 
 <style>
+/* Custom styling untuk tampilan yang lebih modern */
+.table-modern thead {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+.table-modern th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.card-sirkulasi {
+    border-radius: 16px;
+    overflow: hidden;
+}
+.badge-status {
+    font-weight: 500;
+    padding: 0.5em 1em;
+}
+
 @media print {
     body * {
         visibility: hidden;
@@ -78,28 +119,28 @@ include 'header.php';
 }
 </style>
 
-<div class="container mt-5 mb-5 pt-4">
+<div class="container my-5 pt-4">
     
     <?php if ($receipt): ?>
-        <div id="printableReceipt" class="alert alert-success shadow border-0 rounded-4 mb-4 p-4 position-relative" role="alert" style="background-color: #d1e7dd; color: #0f5132;">
+        <div id="printableReceipt" class="alert alert-success shadow-sm border-start border-4 border-success rounded-3 mb-4 p-4 position-relative" role="alert">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <div>
+                <div class="pe-3">
                     <?= $receipt ?>
                 </div>
-                <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             
-            <div class="mt-2 p-2 rounded-3 bg-white bg-opacity-50 border border-success border-opacity-25" style="font-size: 0.9rem;">
-                <i class="fas fa-calendar-alt me-1"></i> 
-                <b>Batas Waktu Pengembalian:</b> 
-                <span class="text-danger fw-bold">
+            <div class="mt-3 p-3 rounded bg-white bg-opacity-75 border border-success border-opacity-25 layout-receipt" style="font-size: 0.9rem;">
+                <p class="mb-1"><i class="fas fa-calendar-alt text-success me-2"></i><b>Batas Waktu Pengembalian:</b></p>
+                <p class="mb-0 text-danger fw-bold fs-5 ps-4">
                     <?= date('d M Y', strtotime('+14 days')) ?>
-                </span> (Maksimal 2 Minggu dari sekarang, dan akan dikenakan denda sebesar Rp1.000,00/hari bila melebihi dari tanggal yang ditentukan).
+                </p>
+                <small class="text-muted d-block ps-4 mt-1">* Maksimal waktu peminjaman adalah 2 minggu. Keterlambatan akan dikenakan denda sebesar Rp1.000,00 / hari.</small>
             </div>
 
-            <div class="mt-3 pt-3 border-top border-success border-opacity-25 text-end">
-                <button type="button" class="btn btn-success rounded-pill px-4 btn-sm shadow-sm" onclick="window.print();">
-                    <i class="fas fa-download me-1"></i> Unduh / Cetak Struk (PDF)
+            <div class="mt-3 pt-3 border-top border-success border-opacity-10 text-end">
+                <button type="button" class="btn btn-success btn-sm rounded-pill px-4" onclick="window.print();">
+                    <i class="fas fa-print me-2"></i> Cetak / Unduh Struk PDF
                 </button>
             </div>
         </div>
@@ -107,34 +148,34 @@ include 'header.php';
 
     <div class="row align-items-center mb-4">
         <div class="col-md-7">
-            <h3 class="fw-bold text-dark">
+            <h3 class="fw-bold text-dark mb-1">
                 <?= hasRole(['Admin', 'Pustakawan']) ? 'Seluruh Data Sirkulasi' : 'Riwayat Peminjaman Anda' ?>
             </h3>
-            <p class="text-muted mb-0">Pantau status buku yang sedang dipinjam atau sudah dikembalikan.</p>
+            <p class="text-muted mb-0">Pantau log status buku yang sedang aktif dipinjam maupun yang sudah selesai.</p>
         </div>
         <div class="col-md-5 text-md-end mt-3 mt-md-0">
             <?php if (hasRole(['Admin', 'Pustakawan']) && $has_completed_loans): ?>
                 <form method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus SEMUA riwayat peminjaman yang sudah selesai/dikembalikan? Tindakan ini permanen.');" class="d-inline">
                     <input type="hidden" name="action" value="delete_all_completed">
-                    <button type="submit" class="btn btn-danger btn-sm px-3 py-2 shadow-sm">
-                        <i class="fas fa-trash-alt me-1"></i> Hapus Semua Riwayat Selesai
+                    <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-2 shadow-sm rounded-pill">
+                        <i class="fas fa-trash-alt me-1"></i> Bersihkan Riwayat Selesai
                     </button>
                 </form>
             <?php endif; ?>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #fff;">
+    <div class="card card-sirkulasi border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light text-muted" style="font-size: 0.85rem; text-transform: uppercase;">
+                <table class="table table-modern table-hover align-middle mb-0">
+                    <thead class="text-muted small text-uppercase">
                         <tr>
                             <th class="ps-4 py-3">ID Transaksi</th>
                             <th>Peminjam</th>
-                            <th>Judul Buku</th>
-                            <th>Tanggal Pinjam</th>
-                            <th>Sisa Waktu / Batas</th>
+                            <th>Informasi Buku</th>
+                            <th>Waktu Pinjam</th>
+                            <th>Batas / Sisa Waktu</th>
                             <th>Status</th>
                             <th class="text-end pe-4">Aksi</th>
                         </tr>
@@ -142,71 +183,81 @@ include 'header.php';
                     <tbody>
                         <?php if(count($loans) == 0): ?>
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">Belum ada data riwayat peminjaman.</td>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="fas fa-folder-open fa-2x mb-3 d-block text-black-50"></i>
+                                    Belum ada data sirkulasi peminjaman.
+                                </td>
                             </tr>
                         <?php endif; ?>
 
                         <?php foreach($loans as $l): ?>
                         <tr>
-                            <td class="ps-4 py-3 fw-bold text-muted">TRX-<?= sprintf("%04d", $l['id']) ?></td>
-                            <td>
-                                <div class="fw-bold text-dark"><?= htmlspecialchars($l['nama_lengkap']) ?></div>
+                            <td class="ps-4 py-3 fw-bold text-secondary">
+                                <span class="badge bg-light text-dark font-monospace">TRX-<?= sprintf("%04d", $l['id']) ?></span>
                             </td>
-                            <td><?= htmlspecialchars($l['judul']) ?></td>
-                            <td><?= date('d M Y, H:i', strtotime($l['tanggal_pinjam'])) ?> WITA</td>
+                            
+                            <td>
+                                <span class="fw-semibold text-dark"><?= htmlspecialchars($l['nama_lengkap']) ?></span>
+                            </td>
+                            
+                            <td style="max-width: 250px;" class="text-truncate">
+                                <span class="text-dark d-block fw-medium"><?= htmlspecialchars($l['judul']) ?></span>
+                            </td>
+                            
+                            <td class="text-muted small">
+                                <?= date('d M Y', strtotime($l['tanggal_pinjam'])) ?><br>
+                                <span class="text-black-50"><?= date('H:i', strtotime($l['tanggal_pinjam'])) ?> WITA</span>
+                            </td>
                             
                             <td>
                                 <?php 
                                 if ($l['status'] === 'Dipinjam') {
-                                    // Hitung tanggal batas kembali (Tanggal Pinjam + 14 Hari)
                                     $tanggal_pinjam = strtotime($l['tanggal_pinjam']);
                                     $batas_kembali = strtotime('+14 days', $tanggal_pinjam);
                                     $hari_ini = strtotime(date('Y-m-d'));
 
-                                    // Hitung selisih hari
                                     $selisih_detik = $batas_kembali - $hari_ini;
                                     $sisa_hari = round($selisih_detik / (60 * 60 * 24));
 
+                                    echo '<small class="text-muted d-block mb-1">s/d ' . date('d M Y', $batas_kembali) . '</small>';
+
                                     if ($sisa_hari < 0) {
-                                        // Terlambat (Warna Merah Bold)
-                                        echo '<span class="text-danger fw-bold"><i class="fas fa-exclamation-circle me-1"></i> ' . $sisa_hari . ' Hari (Terlambat)</span>';
+                                        echo '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="fas fa-exclamation-circle me-1"></i> Terlambat ' . abs($sisa_hari) . ' Hari</span>';
                                     } elseif ($sisa_hari == 0) {
-                                        // Hari terakhir peminjaman
-                                        echo '<span class="text-warning fw-bold"><i class="fas fa-hourglass-half me-1"></i> Hari Ini Batasnya!</span>';
+                                        echo '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill"><i class="fas fa-hourglass-half me-1"></i> Hari Ini Batasnya!</span>';
                                     } else {
-                                        // Masih aman (Hitung Mundur Normal)
-                                        echo '<span class="text-success fw-semibold"><i class="fas fa-hourglass-start me-1"></i> Sisa ' . $sisa_hari . ' Hari</span>';
+                                        echo '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="fas fa-hourglass-start me-1"></i> Sisa ' . $sisa_hari . ' Hari</span>';
                                     }
                                 } else {
-                                    // Jika sudah dikembalikan
-                                    echo '<span class="text-muted small">- Selesai -</span>';
+                                    echo '<span class="text-muted small"><i class="fas fa-check-circle text-muted me-1"></i> Selesai</span>';
                                 }
                                 ?>
                             </td>
 
                             <td>
                                 <?php if($l['status'] == 'Dipinjam'): ?>
-                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5 shadow-sm">
-                                        <i class="fas fa-clock me-1"></i> <?= $l['status'] ?>
+                                    <span class="badge badge-status bg-warning text-dark rounded-pill">
+                                        <i class="spinner-grow spinner-grow-sm text-dark me-1" style="width: 8px; height: 8px;"></i> Aktif
                                     </span>
                                 <?php else: ?>
-                                    <span class="badge bg-success rounded-pill px-3 py-1.5 shadow-sm">
-                                        <i class="fas fa-check me-1"></i> <?= $l['status'] ?>
+                                    <span class="badge badge-status bg-success-subtle text-success border border-success-subtle rounded-pill">
+                                        Selesai
                                     </span>
                                 <?php endif; ?>
                             </td>
+                            
                             <td class="text-end pe-4">
                                 <?php if ($l['status'] == 'Dipinjam' && hasRole(['Admin', 'Pustakawan'])): ?>
                                     <form method="POST" class="d-inline">
                                         <input type="hidden" name="action" value="return">
                                         <input type="hidden" name="loan_id" value="<?= $l['id'] ?>">
                                         <input type="hidden" name="book_id" value="<?= $l['book_id'] ?>">
-                                        <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" onclick="return confirm('Terima pengembalian fisik buku ini?')">
-                                            Terima Buku
+                                        <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm font-weight-medium" onclick="return confirm('Terima pengembalian fisik buku ini?')">
+                                            <i class="fas fa-clipboard-check me-1"></i> Terima Buku
                                         </button>
                                     </form>
                                 <?php else: ?>
-                                    <span class="text-muted small">-</span>
+                                    <span class="text-muted-50 small">-</span>
                                 <?php endif; ?>
                             </td>
                         </tr>

@@ -92,7 +92,7 @@ include 'header.php';
                                     $bg = 'bg-secondary';
                                     if($u['role'] == 'Admin') $bg = 'bg-danger';
                                     if($u['role'] == 'Pustakawan') $bg = 'bg-primary';
-                                    if($u['role'] == 'Anggota') $bg = 'bg-success';
+                                    if($u['role'] == 'Mahasiswa') $bg = 'bg-success';
                                 ?>
                                 <span class="badge <?= $bg ?> rounded-pill px-3 py-2 shadow-sm"><?= $u['role'] ?></span>
                             </td>
@@ -167,7 +167,7 @@ include 'header.php';
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
                         <select name="role" class="form-select border-start-0 ps-0 bg-light">
-                            <option value="Anggota">Mahasiswa</option>
+                            <option value="Mahasiswa">Mahasiswa</option>
                             <option value="Pustakawan">Pustakawan</option>
                             <option value="Admin">Administrator</option>
                         </select>
@@ -222,7 +222,7 @@ include 'header.php';
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
                         <select name="role" id="edit_role" class="form-select border-start-0 ps-0 bg-light">
-                            <option value="Anggota">Mahasiswa</option>
+                            <option value="Mahasiswa">Mahasiswa</option>
                             <option value="Pustakawan">Pustakawan</option>
                             <option value="Admin">Administrator</option>
                         </select>

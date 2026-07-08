@@ -28,30 +28,35 @@ try {
 
 
 
-
-
-
-
 // 3. =========================================================================
 // OTOMATIS BUAT TABEL (MIGRASI DATABASE)
 // =========================================================================
 
 // Membuat tabel 'users' jika belum ada untuk menyimpan data login akun dan hak akses/role
 $pdo->exec("CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, 
-    password TEXT, nama_lengkap TEXT, role TEXT
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    username TEXT UNIQUE, 
+    password TEXT, 
+    nama_lengkap TEXT, 
+    role TEXT
 )");
 
 // Membuat tabel 'books' jika belum ada untuk menyimpan katalog data buku perpustakaan
 $pdo->exec("CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, judul TEXT, 
-    pengarang TEXT, penerbit TEXT, stok INTEGER
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    judul TEXT, 
+    pengarang TEXT, 
+    penerbit TEXT, 
+    stok INTEGER
 )");
 
 // Membuat tabel 'loans' jika belum ada untuk mencatat data transaksi peminjaman buku oleh anggota
 $pdo->exec("CREATE TABLE IF NOT EXISTS loans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, 
-    book_id INTEGER, tanggal_pinjam TEXT, status TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER, 
+    book_id INTEGER, 
+    tanggal_pinjam TEXT, 
+    status TEXT,
     FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(book_id) REFERENCES books(id)
 )");
 
