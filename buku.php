@@ -6,8 +6,8 @@ require_once 'config.php';
 $user_id = $_SESSION['user_id'] ?? 0;
 $total_dipinjam = 0;
 
-// Hitung kuota aktif hanya jika user sudah login dan rolenya Anggota
-if (isset($_SESSION['user_id']) && hasRole('Anggota')) {
+// Hitung kuota aktif hanya jika user sudah login dan rolenya Mahasiswa
+if (isset($_SESSION['user_id']) && hasRole('Mahasiswa')) {
     $stmtCheckActive = $pdo->prepare("SELECT COUNT(*) FROM loans WHERE user_id = ? AND status = 'Dipinjam'");
     $stmtCheckActive->execute([$user_id]);
     $total_dipinjam = (int)$stmtCheckActive->fetchColumn();
@@ -36,12 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$_POST['id']]);
             header("Location: buku.php"); exit;
         }
-        // Anggota: Pinjam Buku dengan Kuantitas Jumlah
+        // Mahasiswa: Pinjam Buku dengan Kuantitas Jumlah
         elseif ($action === 'borrow') {
             // JIKA MENEKAN PINJAM TAPI BELUM LOGIN, PAKSA LOGIN SEKARANG
             requireLogin(); 
             
-            if (hasRole('Anggota')) {
+            if (hasRole('Mahasiswa')) {
                 $book_id = $_POST['book_id'];
                 $jumlah_pinjam = isset($_POST['jumlah_pinjam']) ? (int)$_POST['jumlah_pinjam'] : 1;
                 
@@ -117,7 +117,7 @@ include 'header.php';
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <h3 class="fw-bold" style="color: var(--primary-color); margin-bottom: 1px;">Katalog Pustaka</h3>
-            <?php if(isset($_SESSION['user_id']) && hasRole('Anggota')): ?>
+            <?php if(isset($_SESSION['user_id']) && hasRole('Mahasiswa')): ?>
                 <div class="d-flex align-items-center gap-2 mt-1">
                     <span class="badge bg-secondary bg-opacity-10 text-secondary p-2 rounded-3 border">
                         <i class="fas fa-info-circle me-1"></i> Status Kuota Anda: <b><?= $total_dipinjam ?> / 2</b> Buku Terpinjam
@@ -193,7 +193,7 @@ include 'header.php';
                                         </a>
                                     <?php endif; ?>
 
-                                    <?php if (isset($_SESSION['user_id']) && hasRole('Anggota')): ?>
+                                    <?php if (isset($_SESSION['user_id']) && hasRole('Mahasiswa')): ?>
                                         <?php if ($total_dipinjam >= 2): ?>
                                             <button class="btn btn-sm btn-light border w-100 rounded-pill py-2 text-danger disabled" disabled style="font-size: 0.8rem; font-weight: 500;">
                                                 <i class="fas fa-lock me-1"></i> Kuota Penuh (Maks 2)
