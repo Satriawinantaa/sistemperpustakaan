@@ -54,7 +54,7 @@ include 'header.php';
 <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold" style="color: var(--primary-color);">Kelola Pustakawan & Anggota</h3>
+            <h3 class="fw-bold" style="color: var(--primary-color);">Kelola Pustakawan & Mahasiswa</h3>
             <p class="text-muted mb-0">Manajemen akses dan data pengguna sistem perpustakaan.</p>
         </div>
         <button class="btn btn-warning fw-bold text-dark rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
@@ -92,7 +92,7 @@ include 'header.php';
                                     $bg = 'bg-secondary';
                                     if($u['role'] == 'Admin') $bg = 'bg-danger';
                                     if($u['role'] == 'Pustakawan') $bg = 'bg-primary';
-                                    if($u['role'] == 'Anggota') $bg = 'bg-success';
+                                    if($u['role'] == 'Mahasiswa') $bg = 'bg-success';
                                 ?>
                                 <span class="badge <?= $bg ?> rounded-pill px-3 py-2 shadow-sm"><?= $u['role'] ?></span>
                             </td>
@@ -111,7 +111,7 @@ include 'header.php';
                                 <form method="POST" class="d-inline">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 35px; height: 35px;" onclick="return confirm('Yakin ingin menghapus pengguna ini?')">
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 35px; height: 35px;" onclick="return confirm('Yakin hapus nii??')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -167,7 +167,7 @@ include 'header.php';
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
                         <select name="role" class="form-select border-start-0 ps-0 bg-light">
-                            <option value="Anggota">Mahasiswa</option>
+                            <option value="Mahasiswa">Mahasiswa</option>
                             <option value="Pustakawan">Pustakawan</option>
                             <option value="Admin">Administrator</option>
                         </select>
@@ -222,7 +222,7 @@ include 'header.php';
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
                         <select name="role" id="edit_role" class="form-select border-start-0 ps-0 bg-light">
-                            <option value="Anggota">Mahasiswa</option>
+                            <option value="Mahasiswa">Mahasiswa</option>
                             <option value="Pustakawan">Pustakawan</option>
                             <option value="Admin">Administrator</option>
                         </select>
@@ -258,4 +258,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php include 'footer.php'; ?>

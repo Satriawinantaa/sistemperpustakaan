@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_process'])) {
         header("Location: index.php"); // Kembali ke beranda setelah login
         exit;
     } else {
-        $msg = "<div class='alert alert-danger shadow-sm border-0'>ID Anggota atau Kata Sandi yang Anda masukkan salah.</div>";
+        $msg = "<div class='alert alert-danger shadow-sm border-0'>NIM/Username salah atau belum terdaftar. Silahkahkan datang secara langsung ke perpustakaan</div>";
     }
 }
 
@@ -38,14 +38,47 @@ include 'header.php';
 $p = $_GET['p'] ?? '';
 ?>
 
+<style>
+    .custom-search-form {
+        background: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 50px !important; /* Membuat sudut membulat elegan ala modern search */
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .custom-search-form:focus-within {
+        background: rgba(255, 255, 255, 0.35) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    .custom-search-input {
+        background: transparent !important;
+        color: #ffffff !important;
+    }
+    .custom-search-input::placeholder {
+        color: rgba(255, 255, 255, 0.75) !important;
+    }
+    .custom-search-btn {
+        background: transparent !important;
+        color: #ffffff !important;
+        transition: transform 0.2s;
+    }
+    .custom-search-btn:hover {
+        color: var(--secondary-color) !important;
+        transform: scale(1.1);
+    }
+</style>
+
 <?php if ($p === 'member' && !isLoggedIn()): ?>
-    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 120px 0 60px 0; margin-top: 0;">
+    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://www.stikom-bali.ac.id/id/wp-content/uploads/2021/05/BNN.jpg') center/cover no-repeat; padding: 140px 0 60px 0; margin-top: 0;">
         <div class="container text-center mt-3">
             <div class="row justify-content-center">
                 <div class="col-md-8">
-                    <form action="buku.php" method="GET" class="d-flex bg-white p-1 rounded shadow" style="border-radius: 8px !important;">
-                        <input type="text" name="search" class="form-control border-0 p-3 fs-5 text-muted" placeholder="Masukkan kata kunci untuk mencari koleksi..." style="box-shadow: none;">
-                        <button type="submit" class="btn bg-white border-0 px-4 fs-4 text-secondary"><i class="fas fa-search"></i></button>
+                    <form action="buku.php" method="GET" class="d-flex p-1 shadow custom-search-form">
+                        <input type="text" name="search" class="form-control border-0 p-3 fs-5 custom-search-input" placeholder="Masukkan kata kunci untuk mencari koleksi..." style="box-shadow: none;">
+                        <button type="submit" class="btn border-0 px-4 fs-4 custom-search-btn"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
             </div>
@@ -57,7 +90,7 @@ $p = $_GET['p'] ?? '';
         <hr class="mb-4" style="border-color: #ddd;">
         
         <p class="text-dark mb-4" style="font-size: 1.05rem;">
-            Masukkan NIM/Username serta kata sandi yang diberikan oleh administrator sistem perpustakaan. Jika Anda anggota perpustakaan namun belum memiliki kata sandi, hubungi staf perpustakaan.
+            Masukkan NIM/Username serta kata sandi yang diberikan oleh administrator sistem perpustakaan
         </p>
         
         <div class="row">
@@ -80,13 +113,13 @@ $p = $_GET['p'] ?? '';
     </div>
 
 <?php else: ?>
-    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 160px 0 120px 0; margin-top: 0; min-height: 500px; display: flex; align-items: center;">
+    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://www.stikom-bali.ac.id/id/wp-content/uploads/2021/05/BNN.jpg') center/cover no-repeat; padding: 180px 0 140px 0; margin-top: 0; min-height: 500px; display: flex; align-items: center;">
         <div class="container text-center text-white mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-8">
-                    <form action="buku.php" method="GET" class="d-flex bg-white p-2 rounded shadow-lg" style="border-radius: 8px !important;">
-                        <input type="text" name="search" class="form-control border-0 p-3 fs-5" placeholder="Masukkan kata kunci untuk mencari koleksi..." style="box-shadow: none;">
-                        <button type="submit" class="btn bg-white border-0 px-4 fs-4 text-secondary"><i class="fas fa-search"></i></button>
+                    <form action="buku.php" method="GET" class="d-flex p-2 shadow-lg custom-search-form">
+                        <input type="text" name="search" class="form-control border-0 p-3 fs-5 custom-search-input" placeholder="Masukkan kata kunci untuk mencari koleksi..." style="box-shadow: none;">
+                        <button type="submit" class="btn border-0 px-4 fs-4 custom-search-btn"><i class="fas fa-search"></i></button>
                     </form>
                 </div>
             </div>
@@ -126,7 +159,6 @@ $p = $_GET['p'] ?? '';
 <script>
     window.addEventListener('scroll', function() {
         const navbar = document.getElementById('mainNavbar');
-        // Hanya tambahkan efek jika kita sedang di mode halaman beranda tanpa /?p=member
         <?php if ($is_home): ?>
             if (window.scrollY > 50) {
                 navbar.classList.add('bg-solid');
