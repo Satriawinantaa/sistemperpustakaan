@@ -67,9 +67,13 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
                     <!-- MENU KHUSUS JIKA SUDAH LOGIN -->
                     <li class="nav-item">
                         <a class="nav-link <?= $current_page == 'peminjaman.php' ? 'active' : '' ?>" href="peminjaman.php">
-                            <?= hasRole(['Admin', 'Pustakawan']) ? 'Sirkulasi' : 'Area Anggota' ?>
+                            <?= hasRole(['Admin', 'Pustakawan']) ? 'Sirkulasi' : 'Area Mahasiswa' ?>
                         </a>
                     </li>
+
+
+
+                    
                     <?php if (hasRole('Admin')): ?>
                     <li class="nav-item">
                         <a class="nav-link <?= $current_page == 'pengguna.php' ? 'active' : '' ?>" href="pengguna.php">Pustakawan</a>

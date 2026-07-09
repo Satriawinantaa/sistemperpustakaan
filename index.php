@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_process'])) {
         header("Location: index.php"); // Kembali ke beranda setelah login
         exit;
     } else {
-        $msg = "<div class='alert alert-danger shadow-sm border-0'>ID Anggota atau Kata Sandi yang Anda masukkan salah.</div>";
+        $msg = "<div class='alert alert-danger shadow-sm border-0'>NIM/Username salah atau belum terdaftar. Silahkahkan datang secara langsung ke perpustakaan</div>";
     }
 }
 
@@ -39,7 +39,7 @@ $p = $_GET['p'] ?? '';
 ?>
 
 <?php if ($p === 'member' && !isLoggedIn()): ?>
-    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 120px 0 60px 0; margin-top: 0;">
+    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://www.stikom-bali.ac.id/id/wp-content/uploads/2021/05/BNN.jpg') center/cover no-repeat; padding: 120px 0 60px 0; margin-top: 0;">
         <div class="container text-center mt-3">
             <div class="row justify-content-center">
                 <div class="col-md-8">
@@ -57,7 +57,7 @@ $p = $_GET['p'] ?? '';
         <hr class="mb-4" style="border-color: #ddd;">
         
         <p class="text-dark mb-4" style="font-size: 1.05rem;">
-            Masukkan NIM/Username serta kata sandi yang diberikan oleh administrator sistem perpustakaan. Jika Anda anggota perpustakaan namun belum memiliki kata sandi, hubungi staf perpustakaan.
+            Masukkan NIM/Username serta kata sandi yang diberikan oleh administrator sistem perpustakaan
         </p>
         
         <div class="row">
@@ -80,7 +80,7 @@ $p = $_GET['p'] ?? '';
     </div>
 
 <?php else: ?>
-    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat; padding: 160px 0 120px 0; margin-top: 0; min-height: 500px; display: flex; align-items: center;">
+    <div style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://www.stikom-bali.ac.id/id/wp-content/uploads/2021/05/BNN.jpg') center/cover no-repeat; padding: 160px 0 120px 0; margin-top: 0; min-height: 500px; display: flex; align-items: center;">
         <div class="container text-center text-white mt-5">
             <div class="row justify-content-center">
                 <div class="col-md-8">

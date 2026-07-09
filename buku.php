@@ -21,7 +21,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Admin & Pustakawan: Tambah Buku
         if ($action === 'add' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
             $stmt = $pdo->prepare("INSERT INTO books (judul, pengarang, penerbit, stok) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok']]);
+            $stmt->execute([$_POST['judul'], 
+            $_POST['pengarang'], 
+            $_POST['penerbit'], 
+            $_POST['stok']]);
             header("Location: buku.php"); exit;
         }
         // Admin & Pustakawan: EDIT Buku (FITUR BARU)
@@ -100,18 +103,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fitur Pencarian Sederhana
+
+
+// Fitur Pencarian Sederhana/logout/login
 $search = $_GET['search'] ?? '';
 if ($search) {
     $stmt = $pdo->prepare("SELECT * FROM books WHERE judul LIKE ? OR pengarang LIKE ?");
     $stmt->execute(["%$search%", "%$search%"]);
     $books = $stmt->fetchAll();
 } else {
-    $books = $pdo->query("SELECT * FROM books")->fetchAll();
+    $books = $pdo->query("SELECT * FROM books")->fetchAll(); //karna belum login hanya menampilkan ini aja
 }
-
 include 'header.php';
 ?>
+
+
+
+
+
+
 
 <div class="container mt-5 mb-5 pt-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">

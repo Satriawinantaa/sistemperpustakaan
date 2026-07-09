@@ -41,13 +41,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && hasRole(['Admin', 'Pustakawan'])) {
 
 // -- AMBIL DATA SESUAI ROLE --
 if (hasRole(['Admin', 'Pustakawan'])) {
-    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l 
+    $query = "SELECT l.*, b.judul, u.username, u.nama_lengkap FROM loans l 
               JOIN books b ON l.book_id = b.id 
               JOIN users u ON l.user_id = u.id 
               ORDER BY l.id DESC";
     $stmt = $pdo->query($query);
 } else {
-    $query = "SELECT l.*, b.judul, u.nama_lengkap FROM loans l 
+    $query = "SELECT l.*, b.judul, u.username, u.nama_lengkap FROM loans l 
               JOIN books b ON l.book_id = b.id 
               JOIN users u ON l.user_id = u.id 
               WHERE l.user_id = ? 
@@ -172,6 +172,7 @@ include 'header.php';
                     <thead class="text-muted small text-uppercase">
                         <tr>
                             <th class="ps-4 py-3">ID Transaksi</th>
+                            <th>NIM</th>
                             <th>Peminjam</th>
                             <th>Informasi Buku</th>
                             <th>Waktu Pinjam</th>
@@ -183,7 +184,7 @@ include 'header.php';
                     <tbody>
                         <?php if(count($loans) == 0): ?>
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
+                                <td colspan="8" class="text-center py-5 text-muted">
                                     <i class="fas fa-folder-open fa-2x mb-3 d-block text-black-50"></i>
                                     Belum ada data sirkulasi peminjaman.
                                 </td>
@@ -196,6 +197,10 @@ include 'header.php';
                                 <span class="badge bg-light text-dark font-monospace">TRX-<?= sprintf("%04d", $l['id']) ?></span>
                             </td>
                             
+                            <td class="font-monospace text-secondary small">
+                                <?= htmlspecialchars($l['username']) ?>
+                            </td>
+                            
                             <td>
                                 <span class="fw-semibold text-dark"><?= htmlspecialchars($l['nama_lengkap']) ?></span>
                             </td>
@@ -205,8 +210,7 @@ include 'header.php';
                             </td>
                             
                             <td class="text-muted small">
-                                <?= date('d M Y', strtotime($l['tanggal_pinjam'])) ?><br>
-                                <span class="text-black-50"><?= date('H:i', strtotime($l['tanggal_pinjam'])) ?> WITA</span>
+                                <?= date('d M Y', strtotime($l['tanggal_pinjam'])) ?>
                             </td>
                             
                             <td>

@@ -111,7 +111,7 @@ include 'header.php';
                                 <form method="POST" class="d-inline">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 35px; height: 35px;" onclick="return confirm('Yakin ingin menghapus pengguna ini?')">
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle" style="width: 35px; height: 35px;" onclick="return confirm('Yakin hapus nii??')">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -258,4 +258,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php include 'footer.php'; ?>
