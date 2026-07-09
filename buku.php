@@ -29,7 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         // Admin & Pustakawan: EDIT Buku (FITUR BARU)
         elseif ($action === 'edit' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
-            $stmt = $pdo->prepare("UPDATE books SET judul = ?, pengarang = ?, penerbit = ?, stok = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE books SET judul = ?, 
+            pengarang = ?, 
+            penerbit = ?, 
+            stok = ? WHERE id = ?");
             $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok'], $_POST['id']]);
             header("Location: buku.php"); exit;
         }

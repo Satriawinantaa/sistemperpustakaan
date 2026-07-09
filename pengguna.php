@@ -9,11 +9,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // 1. CREATE (Tambah Pengguna)
     if ($action === 'add') {
-        $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, nama_lengkap, role) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$_POST['username'], $pass, $_POST['nama_lengkap'], $_POST['role']]);
-        header("Location: pengguna.php"); exit;
-    } 
+    // 1. Ambil data dari form paket POST
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $nama_lengkap = trim($_POST['nama_lengkap'] ?? '');
+    $role = $_POST['role'] ?? '';
+
+    // 2. VALIDASI 1: Cek apakah ada form yang kosong
+    if (empty($username) || empty($password) || empty($nama_lengkap) || empty($role)) {
+        die("Gagal: Semua kolom wajib diisi!"); 
+        // Catatan: Nanti bisa diganti pakai $_SESSION['error'] agar tampilannya lebih cantik di halaman web
+    }
+
+    // 3. VALIDASI 2: Cek apakah username sudah dipakai orang lain
+    $checkUser = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+    $checkUser->execute([$username]);
+    if ($checkUser->fetchColumn() > 0) {
+        die("Gagal: Username '" . htmlspecialchars($username) . "' sudah terdaftar!");
+    }
+
+    // 4. VALIDASI 3: Cek panjang password (minimal 5 karakter)
+    if (strlen($password) < 5) {
+        die("Gagal: Password minimal harus 5 karakter!");
+    }
+
+    // --- PROSES EKSEKUSI (KODE ASLI KAMU) ---
+    // Jika lolos semua validasi di atas, barulah simpan ke database
+    $pass = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO users (username, password, nama_lengkap, role) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$username, $pass, $nama_lengkap, $role]);
+    
+    header("Location: pengguna.php"); 
+    exit;
+}
     
     // 2. UPDATE (Edit Pengguna)
     elseif ($action === 'edit') {

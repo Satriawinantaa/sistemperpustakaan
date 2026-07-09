@@ -218,22 +218,10 @@ include 'header.php';
                                 if ($l['status'] === 'Dipinjam') {
                                     $tanggal_pinjam = strtotime($l['tanggal_pinjam']);
                                     $batas_kembali = strtotime('+14 days', $tanggal_pinjam);
-                                    $hari_ini = strtotime(date('Y-m-d'));
 
-                                    $selisih_detik = $batas_kembali - $hari_ini;
-                                    $sisa_hari = round($selisih_detik / (60 * 60 * 24));
-
-                                    echo '<small class="text-muted d-block mb-1">s/d ' . date('d M Y', $batas_kembali) . '</small>';
-
-                                    if ($sisa_hari < 0) {
-                                        echo '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="fas fa-exclamation-circle me-1"></i> Terlambat ' . abs($sisa_hari) . ' Hari</span>';
-                                    } elseif ($sisa_hari == 0) {
-                                        echo '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill"><i class="fas fa-hourglass-half me-1"></i> Hari Ini Batasnya!</span>';
-                                    } else {
-                                        echo '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill"><i class="fas fa-hourglass-start me-1"></i> Sisa ' . $sisa_hari . ' Hari</span>';
-                                    }
+                                    echo '<small class="text-dark d-block fw-medium">s/d ' . date('d M Y', $batas_kembali) . '</small>';
                                 } else {
-                                    echo '<span class="text-muted small"><i class="fas fa-check-circle text-muted me-1"></i> Selesai</span>';
+                                    echo '<span class="text-muted small">-</span>';
                                 }
                                 ?>
                             </td>

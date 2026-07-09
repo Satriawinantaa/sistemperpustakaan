@@ -1,26 +1,34 @@
 <?php
 require_once 'config.php';
 
+
 // -- LOGIKA PROSES LOGIN (Masuk Anggota) --
 $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_process'])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    // 1. Ambil input dan bersihkan spasi kosong di awal/akhir teks dengan trim()
+    $username = trim($_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
     
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password'])) {
-        // Berhasil login, set session
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
-        $_SESSION['role'] = $user['role'];
-        header("Location: index.php"); // Kembali ke beranda setelah login
-        exit;
+    // 2. VALIDASI SEDERHANA: Pastikan kolom tidak kosong
+    if (empty($username) || empty($password)) {
+        $msg = "<div class='alert alert-warning shadow-sm border-0'><i class='fas fa-exclamation-triangle me-2'></i>Gagal: Username dan Kata Sandi wajib diisi!</div>";
     } else {
-        $msg = "<div class='alert alert-danger shadow-sm border-0'>NIM/Username salah atau belum terdaftar. Silahkahkan datang secara langsung ke perpustakaan</div>";
+        // 3. JIKA LOLOS VALIDASI: Jalankan perintah ke database (Kode Asli Kamu)
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+            // Berhasil login, set session
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
+            $_SESSION['role'] = $user['role'];
+            header("Location: index.php"); 
+            exit;
+        } else {
+            $msg = "<div class='alert alert-danger shadow-sm border-0'>NIM/Username salah atau belum terdaftar. Silahkahkan datang secara langsung ke perpustakaan</div>";
+        }
     }
 }
 
