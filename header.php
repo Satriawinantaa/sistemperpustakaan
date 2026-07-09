@@ -25,7 +25,7 @@
             transition: all 0.3s ease;
             position: absolute; /* Membuat navbar melayang di atas gambar */
             width: 100%;
-            z-index: 10;
+            z-index: 1030; /* DIPERBAIKI: Sebelumnya 10, dinaikkan ke 1030 agar navbar selalu paling atas */
         }
         /* Navbar background saat discroll atau di halaman selain index */
         .navbar.bg-solid { background-color: var(--primary-color) !important; padding: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 0; }
