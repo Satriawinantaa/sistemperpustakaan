@@ -31,7 +31,22 @@
         .navbar.bg-solid { background-color: var(--primary-color) !important; padding: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 0; }
         
         .navbar-brand { font-weight: 700; font-size: 1.3rem; color: white !important; line-height: 1.2; }
-        .nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; font-size: 0.95rem; margin-right: 15px; transition: all 0.3s;}
+        
+        /* PERBAIKAN CSS .nav-link 
+           - white-space: nowrap (mencegah teks terpotong menjadi 2 baris) 
+           - flex & align-items (mensejajarkan ikon dengan teks secara presisi)
+        */
+        .nav-link { 
+            color: rgba(255,255,255,0.9) !important; 
+            font-weight: 500; 
+            font-size: 0.95rem; 
+            margin: 0 6px; 
+            transition: all 0.3s;
+            white-space: nowrap; 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
         .nav-link:hover, .nav-link.active { color: var(--secondary-color) !important; }
         .main-content { flex: 1; }
         .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: none; }
@@ -81,6 +96,16 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
                 </li>
                 
                 <?php if (isLoggedIn()): ?>
+                    
+                    <!-- Menu Favorit Mahasiswa (Sudah diperbaiki posisinya) -->
+                    <?php if (hasRole('Mahasiswa')): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $current_page == 'favorit.php' ? 'active' : '' ?>" href="favorit.php">
+                            <i class="fas fa-heart <?= $current_page == 'favorit.php' ? 'text-warning' : 'text-danger' ?>"></i> Favorit
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
                     <li class="nav-item">
                         <a class="nav-link <?= $current_page == 'peminjaman.php' ? 'active' : '' ?>" href="peminjaman.php">
                             <?= hasRole(['Admin', 'Pustakawan']) ? 'Sirkulasi' : 'Area Mahasiswa' ?>
@@ -95,8 +120,8 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
                     
                     <li class="nav-item ms-3">
                         <div class="dropdown">
-                            <a class="nav-link dropdown-toggle text-white d-flex align-items-center bg-dark bg-opacity-25 rounded-pill px-3 py-1" href="#" data-bs-toggle="dropdown">
-                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['nama_lengkap']) ?>&background=ed8936&color=fff&rounded=true" width="28" height="28" class="me-2 shadow-sm">
+                            <a class="nav-link dropdown-toggle text-white d-flex align-items-center bg-dark bg-opacity-25 rounded-pill px-3 py-1" href="#" data-bs-toggle="dropdown" style="gap: 8px;">
+                                <img src="https://ui-avatars.com/api/?name=<?= urlencode($_SESSION['nama_lengkap']) ?>&background=ed8936&color=fff&rounded=true" width="28" height="28" class="me-1 shadow-sm">
                                 <span style="font-size: 0.85rem; font-weight: 600;"><?= $_SESSION['nama_lengkap'] ?></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
