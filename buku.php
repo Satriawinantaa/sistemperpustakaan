@@ -1,6 +1,14 @@
 <?php
 require_once 'config.php';
+
 // HAPUS requireLogin() dari sini agar user yang belum login bisa melihat isi katalog!
+
+// [AUTO-PATCH] Cek dan tambahkan kolom cover pada tabel books jika belum ada
+try {
+    $pdo->exec("ALTER TABLE books ADD COLUMN cover TEXT DEFAULT ''");
+} catch (PDOException $e) {
+    // Abaikan jika kolom sudah ada
+}
 
 // Ambil ID user dari session (jika ada)
 $user_id = $_SESSION['user_id'] ?? 0;
@@ -26,21 +34,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Admin & Pustakawan: Tambah Buku
         if ($action === 'add' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
-            $stmt = $pdo->prepare("INSERT INTO books (judul, pengarang, penerbit, stok) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$_POST['judul'], 
-            $_POST['pengarang'], 
-            $_POST['penerbit'], 
-            $_POST['stok']]);
+            $coverPath = '';
+            
+            // Proses Upload Foto Sampul
+            if (isset($_FILES['cover']) && $_FILES['cover']['error'] === UPLOAD_ERR_OK) {
+                $dir = 'uploads/';
+                if (!is_dir($dir)) mkdir($dir, 0777, true);
+                $coverPath = $dir . uniqid() . '_' . basename($_FILES['cover']['name']);
+                move_uploaded_file($_FILES['cover']['tmp_name'], $coverPath);
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO books (judul, pengarang, penerbit, stok, cover) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $_POST['judul'], 
+                $_POST['pengarang'], 
+                $_POST['penerbit'], 
+                $_POST['stok'],
+                $coverPath
+            ]);
             header("Location: buku.php"); exit;
         }
         // Admin & Pustakawan: EDIT Buku (FITUR BARU)
         elseif ($action === 'edit' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
-            $stmt = $pdo->prepare("UPDATE books SET judul = ?, pengarang = ?, penerbit = ?, stok = ? WHERE id = ?");
-            $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok'], $_POST['id']]);
+            $coverPath = $_POST['old_cover'] ?? '';
+            
+            // Proses Upload Foto Sampul Baru jika ada
+            if (isset($_FILES['cover']) && $_FILES['cover']['error'] === UPLOAD_ERR_OK) {
+                $dir = 'uploads/';
+                if (!is_dir($dir)) mkdir($dir, 0777, true);
+                $newCoverPath = $dir . uniqid() . '_' . basename($_FILES['cover']['name']);
+                
+                if (move_uploaded_file($_FILES['cover']['tmp_name'], $newCoverPath)) {
+                    // Hapus foto lama dari direktori jika ada
+                    if (!empty($coverPath) && file_exists($coverPath)) {
+                        unlink($coverPath);
+                    }
+                    $coverPath = $newCoverPath;
+                }
+            }
+
+            $stmt = $pdo->prepare("UPDATE books SET judul = ?, pengarang = ?, penerbit = ?, stok = ?, cover = ? WHERE id = ?");
+            $stmt->execute([$_POST['judul'], $_POST['pengarang'], $_POST['penerbit'], $_POST['stok'], $coverPath, $_POST['id']]);
             header("Location: buku.php"); exit;
         }
         // Admin & Pustakawan: Hapus Buku
         elseif ($action === 'delete' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
+            // Hapus file foto dari direktori saat buku dihapus
+            $stmtCover = $pdo->prepare("SELECT cover FROM books WHERE id = ?");
+            $stmtCover->execute([$_POST['id']]);
+            $oldCover = $stmtCover->fetchColumn();
+            if (!empty($oldCover) && file_exists($oldCover)) {
+                unlink($oldCover);
+            }
+
             $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
             $stmt->execute([$_POST['id']]);
             header("Location: buku.php"); exit;
@@ -183,7 +229,11 @@ include 'header.php';
                     <div class="card h-100 border-0 shadow-sm position-relative overflow-hidden card-custom" style="border-radius: 16px; background: #fff;">
                         
                         <div class="position-relative w-100 image-container bg-light d-flex align-items-center justify-content-center" style="height: 240px; overflow: hidden; border-bottom: 1px solid #f8f9fa;">
-                            <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400&auto=format&fit=crop" 
+                            <?php 
+                                // Tampilkan cover yang diupload, jika kosong gunakan default dari Unsplash
+                                $cover_img = !empty($b['cover']) ? htmlspecialchars($b['cover']) : "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400&auto=format&fit=crop";
+                            ?>
+                            <img src="<?= $cover_img ?>" 
                                  alt="Cover Buku" 
                                  style="width: 100%; height: 100%; object-fit: cover;">
                             
@@ -281,7 +331,8 @@ include 'header.php';
                                                         data-judul="<?= htmlspecialchars($b['judul']) ?>"
                                                         data-pengarang="<?= htmlspecialchars($b['pengarang']) ?>"
                                                         data-penerbit="<?= htmlspecialchars($b['penerbit']) ?>"
-                                                        data-stok="<?= $b['stok'] ?>">
+                                                        data-stok="<?= $b['stok'] ?>"
+                                                        data-cover="<?= htmlspecialchars($b['cover'] ?? '') ?>">
                                                     <i class="fas fa-edit me-1"></i> Edit
                                                 </button>
                                             </div>
@@ -308,9 +359,10 @@ include 'header.php';
 </div>
 
 <?php if (isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])): ?>
+<!-- Pastikan tambahkan enctype="multipart/form-data" pada form untuk bisa upload file -->
 <div class="modal fade" id="addBookModal">
     <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+        <form method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
             <div class="modal-header border-bottom-0">
                 <h5 class="modal-title fw-bold" style="color: var(--primary-color);"><i class="fas fa-plus-circle text-primary me-2"></i>Registrasi Buku Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -321,6 +373,7 @@ include 'header.php';
                 <div class="mb-3"><label class="form-label small fw-bold text-muted">Nama Pengarang</label><input type="text" name="pengarang" class="form-control bg-light" required></div>
                 <div class="mb-3"><label class="form-label small fw-bold text-muted">Penerbit</label><input type="text" name="penerbit" class="form-control bg-light" required></div>
                 <div class="mb-3"><label class="form-label small fw-bold text-muted">Jumlah Stok (Eksemplar)</label><input type="number" name="stok" class="form-control bg-light" required min="1"></div>
+                <div class="mb-3"><label class="form-label small fw-bold text-muted">Foto Sampul Buku (Opsional)</label><input type="file" name="cover" class="form-control bg-light" accept="image/*"></div>
             </div>
             <div class="modal-footer border-top-0 px-4 pb-3">
                 <button type="submit" class="btn btn-primary rounded-pill px-4 w-100">Simpan ke Katalog</button>
@@ -331,7 +384,7 @@ include 'header.php';
 
 <div class="modal fade" id="editBookModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
+        <form method="POST" enctype="multipart/form-data" class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
             <div class="modal-header border-bottom-0">
                 <h5 class="modal-title fw-bold" style="color: var(--primary-color);"><i class="fas fa-edit text-primary me-2"></i>Ubah Data Buku</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -339,6 +392,7 @@ include 'header.php';
             <div class="modal-body px-4">
                 <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="id" id="edit-id">
+                <input type="hidden" name="old_cover" id="edit-old-cover">
                 
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted">Judul Lengkap</label>
@@ -355,6 +409,10 @@ include 'header.php';
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted">Jumlah Stok (Eksemplar)</label>
                     <input type="number" name="stok" id="edit-stok" class="form-control bg-light" required min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Ganti Foto Sampul (Biarkan kosong jika tidak diubah)</label>
+                    <input type="file" name="cover" class="form-control bg-light" accept="image/*">
                 </div>
             </div>
             <div class="modal-footer border-top-0 px-4 pb-3">
@@ -378,6 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var pengarang = button.getAttribute('data-pengarang');
             var penerbit = button.getAttribute('data-penerbit');
             var stok = button.getAttribute('data-stok');
+            var cover = button.getAttribute('data-cover');
             
             // Masukkan data ke dalam elemen input form modal edit
             document.getElementById('edit-id').value = id;
@@ -385,6 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('edit-pengarang').value = pengarang;
             document.getElementById('edit-penerbit').value = penerbit;
             document.getElementById('edit-stok').value = stok;
+            document.getElementById('edit-old-cover').value = cover;
         });
     }
 });
