@@ -60,6 +60,15 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS loans (
     FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(book_id) REFERENCES books(id)
 )");
 
+// Membuat tabel 'favorites' jika belum ada untuk fitur buku favorit mahasiswa
+$pdo->exec("CREATE TABLE IF NOT EXISTS favorites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    user_id INTEGER, 
+    book_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id), 
+    FOREIGN KEY(book_id) REFERENCES books(id)
+)");
+
 
 // 4. =========================================================================
 // SEEDING DATA AWAL (ISI DATA DEFAULT JIKA DATABASE KOSONG)
