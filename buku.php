@@ -5,12 +5,18 @@ require_once 'config.php';
 // Ambil ID user dari session (jika ada)
 $user_id = $_SESSION['user_id'] ?? 0;
 $total_dipinjam = 0;
+$favorit_user = []; // Tambahan array untuk menyimpan ID buku favorit
 
 // Hitung kuota aktif hanya jika user sudah login dan rolenya Mahasiswa
 if (isset($_SESSION['user_id']) && hasRole('Mahasiswa')) {
     $stmtCheckActive = $pdo->prepare("SELECT COUNT(*) FROM loans WHERE user_id = ? AND status = 'Dipinjam'");
     $stmtCheckActive->execute([$user_id]);
     $total_dipinjam = (int)$stmtCheckActive->fetchColumn();
+
+    // AMBIL DATA FAVORIT USER
+    $stmtFav = $pdo->prepare("SELECT book_id FROM favorites WHERE user_id = ?");
+    $stmtFav->execute([$user_id]);
+    $favorit_user = $stmtFav->fetchAll(PDO::FETCH_COLUMN);
 }
 
 // -- PROSES POST DATA --
@@ -37,6 +43,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif ($action === 'delete' && isset($_SESSION['user_id']) && hasRole(['Admin', 'Pustakawan'])) {
             $stmt = $pdo->prepare("DELETE FROM books WHERE id = ?");
             $stmt->execute([$_POST['id']]);
+            header("Location: buku.php"); exit;
+        }
+        // Mahasiswa: Toggle Favorit Buku
+        elseif ($action === 'toggle_favorite' && isset($_SESSION['user_id']) && hasRole('Mahasiswa')) {
+            $book_id = $_POST['book_id'];
+            
+            // Cek apakah buku sudah ada di daftar favorit
+            $stmtCek = $pdo->prepare("SELECT COUNT(*) FROM favorites WHERE user_id = ? AND book_id = ?");
+            $stmtCek->execute([$user_id, $book_id]);
+            
+            if ($stmtCek->fetchColumn() > 0) {
+                // Jika sudah ada, hapus dari favorit
+                $pdo->prepare("DELETE FROM favorites WHERE user_id = ? AND book_id = ?")->execute([$user_id, $book_id]);
+            } else {
+                // Jika belum, tambahkan ke favorit
+                $pdo->prepare("INSERT INTO favorites (user_id, book_id) VALUES (?, ?)")->execute([$user_id, $book_id]);
+            }
             header("Location: buku.php"); exit;
         }
         // Mahasiswa: Pinjam Buku dengan Kuantitas Jumlah
@@ -167,6 +190,19 @@ include 'header.php';
                             <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 start-0 m-3 px-2 py-1 small rounded-sm" style="font-size: 0.75rem; backdrop-filter: blur(4px);">
                                 ID: <?= sprintf("%04d", $b['id']) ?>
                             </span>
+
+                            <!-- TOMBOL FAVORIT UNTUK MAHASISWA -->
+                            <?php if (isset($_SESSION['user_id']) && hasRole('Mahasiswa')): ?>
+                                <?php $is_favorit = in_array($b['id'], $favorit_user); ?>
+                                <form method="POST" class="position-absolute top-0 end-0 m-2" style="z-index: 10;">
+                                    <input type="hidden" name="action" value="toggle_favorite">
+                                    <input type="hidden" name="book_id" value="<?= $b['id'] ?>">
+                                    <button type="submit" class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; padding: 0; transition: 0.2s;" title="<?= $is_favorit ? 'Hapus dari Favorit' : 'Tambah ke Favorit' ?>">
+                                        <i class="fas fa-heart <?= $is_favorit ? 'text-danger' : 'text-muted opacity-50' ?>"></i>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            <!-- AKHIR TOMBOL FAVORIT -->
                         </div>
                         
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
