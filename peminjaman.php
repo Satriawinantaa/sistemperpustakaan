@@ -66,7 +66,7 @@ foreach ($loans as $loan) {
     }
 }
 
-// Cek Notifikasi Struk
+// Cek Notifikasi Struk (Flash Message yang hilang setelah 1x refresh)
 $receipt = '';
 if (isset($_SESSION['flash_receipt'])) {
     $receipt = $_SESSION['flash_receipt'];
@@ -260,6 +260,12 @@ include 'header.php';
                                             <i class="fas fa-clipboard-check me-1"></i> Terima Buku
                                         </button>
                                     </form>
+                                <?php elseif ($l['status'] == 'Dipinjam' && hasRole('Mahasiswa')): ?>
+                                    <!-- TOMBOL CETAK STRUK PERMANEN UNTUK MAHASISWA -->
+                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm" 
+                                            onclick="cetakStrukKhusus('TRX-<?= sprintf('%04d', $l['id']) ?>', '<?= htmlspecialchars(addslashes($l['judul'])) ?>', '<?= date('d M Y, H:i', strtotime($l['tanggal_pinjam'])) ?>', '<?= date('d M Y', strtotime('+14 days', strtotime($l['tanggal_pinjam']))) ?>')">
+                                        <i class="fas fa-print me-1"></i> Cetak Struk
+                                    </button>
                                 <?php else: ?>
                                     <span class="text-muted-50 small">-</span>
                                 <?php endif; ?>
@@ -272,5 +278,37 @@ include 'header.php';
         </div>
     </div>
 </div>
+
+<script>
+// Fungsi JavaScript untuk memunculkan jendela cetak struk dari baris tabel
+function cetakStrukKhusus(id, judul, tglPinjam, batasKembali) {
+    const printContent = `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px;">
+            <h3 style="text-align: center; margin-bottom: 0;">STIKOM Library</h3>
+            <p style="text-align: center; margin-top: 5px; color: #666; border-bottom: 1px dashed #ccc; padding-bottom: 15px;">Struk Peminjaman Buku</p>
+            
+            <p style="margin-bottom: 5px;"><b>ID Transaksi:</b> ${id}</p>
+            <p style="margin-bottom: 5px;"><b>Judul Buku:</b> ${judul}</p>
+            <p style="margin-bottom: 5px;"><b>Waktu Pinjam:</b> ${tglPinjam} WITA</p>
+            <p style="margin-bottom: 5px;"><b>Batas Kembali:</b> <span style="color: red; font-weight: bold;">${batasKembali}</span></p>
+            
+            <div style="border-top: 1px dashed #ccc; margin-top: 20px; padding-top: 15px; text-align: center; font-size: 12px; color: #666;">
+                Tunjukkan struk ini kepada Pustakawan di meja sirkulasi untuk mengambil fisik buku Anda.
+            </div>
+        </div>
+    `;
+    
+    // Simpan konten asli
+    const originalContent = document.body.innerHTML;
+    
+    // Ganti isi body dengan struk, lalu cetak
+    document.body.innerHTML = printContent;
+    window.print();
+    
+    // Kembalikan isi body seperti semula
+    document.body.innerHTML = originalContent;
+    window.location.reload(); // Wajib reload untuk mengembalikan event listener (seperti dropdown navbar)
+}
+</script>
 
 <?php include 'footer.php'; ?>
