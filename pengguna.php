@@ -54,7 +54,7 @@ include 'header.php';
 <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold" style="color: var(--primary-color);">Kelola Pustakawan & Anggota</h3>
+            <h3 class="fw-bold" style="color: var(--primary-color);">Kelola Pustakawan & Mahasiswa</h3>
             <p class="text-muted mb-0">Manajemen akses dan data pengguna sistem perpustakaan.</p>
         </div>
         <button class="btn btn-warning fw-bold text-dark rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">

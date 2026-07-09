@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STIKOM Library - Sistem Manajemen Perpustakaan</title>
-    <!-- Bootstrap 5 & FontAwesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -31,11 +30,26 @@
         /* Navbar background saat discroll atau di halaman selain index */
         .navbar.bg-solid { background-color: var(--primary-color) !important; padding: 1rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: sticky; top: 0; }
         
-        .navbar-brand { font-weight: 700; font-size: 1.4rem; color: white !important; }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; color: white !important; line-height: 1.2; }
         .nav-link { color: rgba(255,255,255,0.9) !important; font-weight: 500; font-size: 0.95rem; margin-right: 15px; transition: all 0.3s;}
         .nav-link:hover, .nav-link.active { color: var(--secondary-color) !important; }
         .main-content { flex: 1; }
         .card { border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: none; }
+        
+        /* Pengaturan ukuran logo STIKOM agar rapi */
+        .navbar-logo {
+            height: 45px; /* Sedikit dinaikkan agar seimbang dengan dua baris teks */
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* Gaya teks slogan Always the First */
+        .navbar-slogan {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -48,8 +62,11 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
 <nav class="navbar navbar-expand-lg <?= $is_home ? '' : 'bg-solid' ?>" id="mainNavbar">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="index.php">
-            <i class="fas fa-layer-group fa-lg me-2 text-warning"></i>
-            STIKOM Library
+            <img src="https://library.stikom-bali.ac.id/template/stikom/img/logo.png" alt="STIKOM Library Logo" class="navbar-logo me-2">
+            <div class="d-flex flex-column">
+                <span>PERPUSTAKAAN ITB STIKOM BALI</span>
+                <span class="navbar-slogan">Always the First</span>
+            </div>
         </a>
         <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <i class="fas fa-bars fa-lg"></i>
@@ -64,15 +81,11 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
                 </li>
                 
                 <?php if (isLoggedIn()): ?>
-                    <!-- MENU KHUSUS JIKA SUDAH LOGIN -->
                     <li class="nav-item">
                         <a class="nav-link <?= $current_page == 'peminjaman.php' ? 'active' : '' ?>" href="peminjaman.php">
                             <?= hasRole(['Admin', 'Pustakawan']) ? 'Sirkulasi' : 'Area Mahasiswa' ?>
                         </a>
                     </li>
-
-
-
                     
                     <?php if (hasRole('Admin')): ?>
                     <li class="nav-item">
@@ -92,7 +105,6 @@ $is_home = ($current_page == 'index.php' && !isset($_GET['p']));
                         </div>
                     </li>
                 <?php else: ?>
-                    <!-- MENU LOGIN UNTUK PUBLIK ALA SLIMS -->
                     <li class="nav-item ms-2">
                         <a class="nav-link <?= (isset($_GET['p']) && $_GET['p'] == 'member') ? 'active fw-bold' : '' ?>" href="index.php?p=member">
                             Login
